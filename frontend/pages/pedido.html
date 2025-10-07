@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Pedido</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <h1>Crear Pedido</h1>
+
+  <form id="pedido-form" class="flex-col">
+    <div class="form-group">
+      <label for="clienteId">Cliente ID</label>
+      <input type="number" id="clienteId" name="clienteId" required>
+    </div>
+
+    <div class="form-group">
+      <label for="estado">Estado</label>
+      <select id="estado" name="estado" required>
+        <option value="pendiente">Pendiente</option>
+        <option value="pagado">Pagado</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="fecha">Fecha</label>
+      <input type="date" id="fecha" name="fecha" required>
+    </div>
+
+    <h2>Productos</h2>
+
+    <div id="productos-container" class="productos-container"></div>
+
+    <button type="button" id="agregar-producto-btn">+ Agregar Producto</button>
+
+    <div class="form-group">
+      <label for="total">Total</label>
+      <input type="number" id="total" name="total" readonly>
+    </div>
+
+    <button type="submit">Crear Pedido</button>
+  </form>
+
+  <script type="module" src="../js/pedido.js"></script>
+</body>
+</html>

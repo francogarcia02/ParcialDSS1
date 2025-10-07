@@ -1,56 +1,95 @@
+import { callProducts } from "./app.js"; // Importa la función que obtiene los productos
+
 const form = document.getElementById("pedido-form");
 const productosContainer = document.getElementById("productos-container");
 const agregarProductoBtn = document.getElementById("agregar-producto-btn");
 const totalInput = document.getElementById("total");
 
-let productos = [];
+let productosDisponibles = [];
 
+// 🔹 Cargar productos al iniciar
+document.addEventListener("DOMContentLoaded", async () => {
+  productosDisponibles = await callProducts();
+});
+
+// 🔹 Agregar un nuevo bloque de producto al formulario
 agregarProductoBtn.addEventListener("click", () => {
-  const index = productos.length;
+  if (productosDisponibles.length === 0) {
+    alert("No hay productos disponibles todavía.");
+    return;
+  }
 
   const div = document.createElement("div");
   div.classList.add("form-group");
 
+  // Crear el select de productos
+  const select = document.createElement("select");
+  select.classList.add("producto-select");
+  productosDisponibles.forEach(p => {
+    const option = document.createElement("option");
+    option.value = p.id;
+    option.textContent = `${p.nombre} ($${p.precio})`;
+    select.appendChild(option);
+  });
+
   div.innerHTML = `
-    <label>Producto ID</label>
-    <input type="number" class="producto-id" required>
-
-    <label>Cantidad</label>
-    <input type="number" class="producto-cantidad" required>
-
-    <label>Precio Unitario</label>
-    <input type="number" class="producto-precio" required>
-
-    <label>Subtotal</label>
-    <input type="number" class="producto-subtotal" readonly>
-
-    <button type="button" class="eliminar-producto-btn">Eliminar</button>
+    <label>Producto</label>
   `;
+  div.appendChild(select);
 
-  // Eliminar producto del listado
-  div.querySelector(".eliminar-producto-btn").addEventListener("click", () => {
+  // Cantidad
+  const labelCantidad = document.createElement("label");
+  labelCantidad.textContent = "Cantidad";
+  const inputCantidad = document.createElement("input");
+  inputCantidad.type = "number";
+  inputCantidad.classList.add("producto-cantidad");
+  inputCantidad.required = true;
+
+  // Subtotal
+  const labelSubtotal = document.createElement("label");
+  labelSubtotal.textContent = "Subtotal";
+  const inputSubtotal = document.createElement("input");
+  inputSubtotal.type = "number";
+  inputSubtotal.classList.add("producto-subtotal");
+  inputSubtotal.readOnly = true;
+
+  // Botón eliminar
+  const btnEliminar = document.createElement("button");
+  btnEliminar.type = "button";
+  btnEliminar.textContent = "Eliminar";
+  btnEliminar.classList.add("eliminar-producto-btn");
+
+  div.appendChild(labelCantidad);
+  div.appendChild(inputCantidad);
+  div.appendChild(labelSubtotal);
+  div.appendChild(inputSubtotal);
+  div.appendChild(btnEliminar);
+
+  // Eventos
+  inputCantidad.addEventListener("input", () => actualizarSubtotal(div));
+  select.addEventListener("change", () => actualizarSubtotal(div));
+  btnEliminar.addEventListener("click", () => {
     div.remove();
     actualizarTotal();
   });
 
-  // Actualizar subtotal dinámicamente
-  div.querySelector(".producto-cantidad").addEventListener("input", actualizarSubtotal);
-  div.querySelector(".producto-precio").addEventListener("input", actualizarSubtotal);
-
   productosContainer.appendChild(div);
 });
 
-function actualizarSubtotal(e) {
-  const contenedor = e.target.closest(".form-group");
-  const cantidad = parseFloat(contenedor.querySelector(".producto-cantidad").value) || 0;
-  const precio = parseFloat(contenedor.querySelector(".producto-precio").value) || 0;
-  const subtotal = cantidad * precio;
+// 🔹 Calcular subtotal según producto y cantidad
+function actualizarSubtotal(div) {
+  const productoId = parseInt(div.querySelector(".producto-select").value);
+  const cantidad = parseFloat(div.querySelector(".producto-cantidad").value) || 0;
+  const producto = productosDisponibles.find(p => p.id === productoId);
 
-  contenedor.querySelector(".producto-subtotal").value = subtotal.toFixed(2);
+  if (!producto) return;
 
+  const subtotal = cantidad * producto.precio;
+  div.querySelector(".producto-subtotal").value = subtotal.toFixed(2);
   actualizarTotal();
 }
 
+// 🔹 Calcular el total general
 function actualizarTotal() {
   const subtotales = document.querySelectorAll(".producto-subtotal");
   let total = 0;
@@ -58,6 +97,7 @@ function actualizarTotal() {
   totalInput.value = total.toFixed(2);
 }
 
+// 🔹 Enviar pedido al backend
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -66,18 +106,22 @@ form.addEventListener("submit", async (e) => {
   const fecha = document.getElementById("fecha").value;
   const total = parseFloat(totalInput.value);
 
-  const productos = Array.from(productosContainer.children).map(div => ({
-    productoId: parseInt(div.querySelector(".producto-id").value),
-    cantidad: parseInt(div.querySelector(".producto-cantidad").value),
-    precioUnitario: parseFloat(div.querySelector(".producto-precio").value),
-    subtotal: parseFloat(div.querySelector(".producto-subtotal").value)
-  }));
+  const productos = Array.from(productosContainer.children).map(div => {
+    const productoId = parseInt(div.querySelector(".producto-select").value);
+    const cantidad = parseInt(div.querySelector(".producto-cantidad").value);
+    const producto = productosDisponibles.find(p => p.id === productoId);
+    return {
+      productoId,
+      cantidad,
+      precioUnitario: producto.precio,
+      subtotal: cantidad * producto.precio
+    };
+  });
 
   const pedido = { clienteId, estado, fecha, total, productos };
 
   console.log("Pedido a enviar:", pedido);
 
-  // Envío al backend
   const response = await fetch("http://localhost:3000/pedidos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

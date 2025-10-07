@@ -86,7 +86,7 @@ updateForm.addEventListener("submit", async (e) => {
     const products = callProducts()
 });
 
-const callProducts = async () => {
+export const callProducts = async () => {
     const productos = await fetchProductos();
 
     if(productos.length >= 1) {

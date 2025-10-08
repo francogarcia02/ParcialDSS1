@@ -25,9 +25,10 @@ function renderProductos(productos) {
   });
 }
 
-function eliminarProducto(id) {
+const eliminarProducto = async (id) => {
     const deleteP = deleteProduct({productoId: id})
-    const products = callProducts()
+    const products = await callProducts()
+    renderProductos(products)
 }
 
 const productoForm = document.getElementById("producto-form");
@@ -41,7 +42,8 @@ productoForm.addEventListener("submit", async (e) => {
     const estado = document.getElementById("estado").value;
 
     const create = await createProduct({nombre, precio, stock, estado})
-    const products = callProducts()
+    const products = await callProducts()
+    renderProductos(products)
 });
 
 const updateModal = document.getElementById("update-modal");
@@ -83,17 +85,15 @@ updateForm.addEventListener("submit", async (e) => {
     });
 
     updateModal.style.display = "none";
-    const products = callProducts()
+    const products = await callProducts()
+    renderProductos(products)
 });
 
 export const callProducts = async () => {
-    const productos = await fetchProductos();
-
-    if(productos.length >= 1) {
-        renderProductos(productos)
-        return productos      
-    }
+  const productos = await fetchProductos();
+  return productos
 }
 
 
-const products = callProducts()
+const products = await callProducts()
+renderProductos(products)

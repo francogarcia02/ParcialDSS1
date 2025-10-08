@@ -42,7 +42,6 @@ router.post('/pedidoItems', async (req, res)=>{
 
 router.post('/pedidoItems/many-products', async (req, res) => {
     const { pedidoId, productos } = req.body;
-
     try {
         // Validamos que productos sea un array
         if (!Array.isArray(productos) || productos.length === 0) {
@@ -51,15 +50,15 @@ router.post('/pedidoItems/many-products', async (req, res) => {
 
         // Creamos todos los items en paralelo
         const pedidoItems = await Promise.all(
-        productos.map((producto) =>
-            Pedido_Items.create({
-            pedidoId: pedidoId,
-            productoId: producto.productoId,
-            cantidad: producto.cantidad,
-            precioUnitario: producto.precioUnitario,
-            subtotal: producto.subtotal,
-            })
-        )
+            productos.map((producto) =>
+                Pedido_Items.create({
+                    pedidoId: pedidoId,
+                    productoId: producto.productoId,
+                    cantidad: producto.cantidad,
+                    precioUnitario: producto.precioUnitario,
+                    subtotal: producto.subtotal,
+                })
+            )
         );
 
         res.status(201).json({
@@ -73,8 +72,6 @@ router.post('/pedidoItems/many-products', async (req, res) => {
         });
     }
 });
-
-
 
 router.put('/pedidoItems', async (req, res) => {
     const { pedidoItemId, pedidoId, productoId, cantidad, precioUnitario, subtotal } = req.body;

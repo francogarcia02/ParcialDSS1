@@ -1,73 +1,88 @@
 import { Router } from "express";
-import { Pedido_Items, Pedidos } from "../models/index.js";
+import { Clientes, Pedido_Items, Pedidos, Productos } from "../models/index.js";
 import { sequelize } from "../config/db.js";
 
 const router = Router();
 
-router.get('/pedidos', async (req, res)=>{
+router.get('/pedidos', async (req, res) => {
     try {
-        const pedidos = await Pedidos.findAll()
+        const pedidos = await Pedidos.findAll({
+            include: [
+                {
+                    model: Clientes,
+                    attributes: ['nombre'], 
+                },
+                {
+                    model: Pedido_Items,
+                    include: [
+                        {
+                            model: Productos,
+                            attributes: ['nombre'], 
+                        }
+                    ]
+                }
+            ]
+        });
+
         res.status(200).json({
             success: true,
-            pedidos: pedidos
-        })
+            pedidos
+        });
     } catch (error) {
+        console.error(error);
         res.status(500).json({
-            error: error
-        })
+            error: error.message
+        });
     }
-    
-})
+});
 
 router.post('/pedidos', async (req, res) => {
-  const { clienteId, estado, fecha, total, productos } = req.body;
-
-  const transaction = await sequelize.transaction();
-
-  try {
-    const pedido = await Pedidos.create(
-    { 
-        clienteId: clienteId, 
-        estado: estado, 
-        date: fecha, 
-        total: total 
-    },
-      { transaction }
-    );
-
-    for (const p of productos) {
-      await Pedido_Items.create(
-        {
-          pedidoId: pedido.id,
-          productoId: p.productoId,
-          cantidad: p.cantidad,
-          precioUnitario: p.precioUnitario,
-          subtotal: p.subtotal
+    const { clienteId, estado, fecha, total, productos } = req.body;
+        
+    const transaction = await sequelize.transaction();
+    try {
+        const pedido = await Pedidos.create(
+        { 
+            clienteId: clienteId, 
+            estado: estado, 
+            date: fecha, 
+            total: total 
         },
         { transaction }
-      );
+        );
+
+        for (const p of productos) {
+        await Pedido_Items.create(
+            {
+            pedidoId: pedido.id,
+            productoId: p.productoId,
+            cantidad: p.cantidad,
+            precioUnitario: p.precioUnitario,
+            subtotal: p.subtotal
+            },
+            { transaction }
+        );
+        }
+
+        await transaction.commit();
+
+        res.status(201).json({
+            success: true,
+            message: 'Pedido y productos creados correctamente',
+            pedido
+        });
+    } catch (error) {
+        await transaction.rollback();
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al crear el pedido'
+        });
     }
-
-    await transaction.commit();
-
-    res.status(201).json({
-      success: true,
-      message: 'Pedido y productos creados correctamente',
-      pedido
-    });
-  } catch (error) {
-    await transaction.rollback();
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      error: 'Error al crear el pedido'
-    });
-  }
 });
 
 router.put('/pedidos', async (req, res) => {
     const { pedidoId, clienteId, estado, fecha, total } = req.body;
-
     try {
         const [cantidadActualizados] = await Pedidos.update(
             { clienteId: clienteId,estado: estado, fecha: fecha, total: total },
@@ -81,7 +96,7 @@ router.put('/pedidos', async (req, res) => {
         });
         }
         
-        const pedidoActualizado = await Clientes.findByPk(clienteId);
+        const pedidoActualizado = await Pedidos.findByPk(pedidoId);
         res.status(200).json({
             success: true,
             pedido: pedidoActualizado

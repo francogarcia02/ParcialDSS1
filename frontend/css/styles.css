@@ -153,3 +153,56 @@ li button:hover {
   border-radius: 8px;
   border: 1px solid #ddd;
 }
+
+.pedido-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.pedido-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background-color: #fff;
+}
+
+.pedido-subcontainer {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.pedido-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.pedido-product-list-title{
+  font-weight: bold;
+}
+
+.pedido-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pedido-title {
+  margin:0
+}
+
+.pedido-item p:last-child {
+  font-weight: bold;
+}
+
+.pedido-item p:first-child {
+  font-weight: bold;
+  color: gray;
+}

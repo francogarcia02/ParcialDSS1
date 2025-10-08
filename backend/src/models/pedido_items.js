@@ -5,6 +5,6 @@ export const Pedido_ItemsModel = (sequelize) => {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     precioUnitario: { type: DataTypes.FLOAT, allowNull: false },
     cantidad: { type: DataTypes.INTEGER, allowNull: false },
-    total: { type: DataTypes.FLOAT, allowNull: false },
+    subtotal: { type: DataTypes.FLOAT, allowNull: false },
   });
 };
